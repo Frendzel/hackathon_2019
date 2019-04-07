@@ -113,7 +113,7 @@ class FingerprintController(
         //call log to elasticsearch on AWS
         khttp.post(
                 url = "https://search-elastic-authenticar-a4b7jkt5byngi3utgwdpful4va.us-east-1.es.amazonaws.com/authentication/_doc",
-                json = mapOf("user" to "shmulik", "status" to "failed", "device" to "android note 9"))
+                json = mapOf("user" to "shmulik", "status" to "failed", "device" to "android note 9",  "vin" to "8040904", "timestamp" to "2019-04-08"))
             } catch (e: Exception) {
                 println(e)
                 e.printStackTrace()
@@ -152,7 +152,7 @@ class FingerprintController(
                 //call log to elasticsearch on AWS
                 khttp.post(
                     url = "https://search-elastic-authenticar-a4b7jkt5byngi3utgwdpful4va.us-east-1.es.amazonaws.com/authentication/_doc",
-                        json = mapOf("user" to "shmulik", "status" to "sucess", "device" to "android note 9")
+                        json = mapOf("user" to "shmulik", "status" to "success", "device" to "android note 9",  "vin" to "8040904", "timestamp" to "2019-04-08")
                     )
 
                 //send command to the vehicle
