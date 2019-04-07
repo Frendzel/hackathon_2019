@@ -7,6 +7,19 @@ import android.support.v4.os.CancellationSignal
 import android.widget.ImageView
 import android.widget.TextView
 import khttp.put as httpPut
+import khttp.get as httpGet
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
+import android.content.ComponentName
+import android.app.admin.DevicePolicyManager
+import android.app.admin.DeviceAdminReceiver
+import android.os.Build
+import android.support.annotation.RequiresApi
+import android.util.Log
+import java.io.File
+
+
+//import android.net.MacAddress
 
 /**
  * Defines the behavior required by any view used for fingerprint authentication.
@@ -94,6 +107,21 @@ class FingerprintController(
         errorText.setTextColor(ContextCompat.getColor(errorText.context, R.color.warning_color))
         errorText.removeCallbacks(resetErrorTextRunnable)
         errorText.postDelayed(resetErrorTextRunnable, ERROR_TIMEOUT_MILLIS)
+
+        val thread = Thread(Runnable {
+            try {
+        //call log to elasticsearch on AWS
+        khttp.post(
+                url = "https://search-elastic-authenticar-a4b7jkt5byngi3utgwdpful4va.us-east-1.es.amazonaws.com/authentication/_doc",
+                json = mapOf("user" to "shmulik", "status" to "failed", "device" to "android note 9"))
+            } catch (e: Exception) {
+                println(e)
+                e.printStackTrace()
+            }
+        })
+
+        thread.start()
+
     }
 
     override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
@@ -107,19 +135,32 @@ class FingerprintController(
 
 
 
-    override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult?) {
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult?)
+    {
         errorText.removeCallbacks(resetErrorTextRunnable)
         icon.setImageResource(R.drawable.ic_check_white_24dp)
         errorText.setTextColor(ContextCompat.getColor(errorText.context, R.color.success_color))
         errorText.text = errorText.context.getString(R.string.fingerprint_recognized)
 
+        fun getIpFromFile(): String = File("/config.txt").readText(Charsets.UTF_8)
+
         //TODO Shmulik
         val thread = Thread(Runnable {
             try {
-                khttp.put(
-                        url = "http://10.0.75.1:9200/bio/_doc/1",
-                        json = mapOf("user" to "shmulik", "auth" to "valid"))
-            } catch (e: Exception) {
+
+                //call log to elasticsearch on AWS
+                khttp.post(
+                    url = "https://search-elastic-authenticar-a4b7jkt5byngi3utgwdpful4va.us-east-1.es.amazonaws.com/authentication/_doc",
+                        json = mapOf("user" to "shmulik", "status" to "sucess", "device" to "android note 9")
+                    )
+
+                //send command to the vehicle
+              //  var url = getIpFromFile();
+                khttp.post(
+                    url = "http://192.168.100.215/auth",   // "http://10.0.75.1:9200/bio/_doc/1",
+                    json = mapOf("cert" to "U2htdWxpayB2ZWhpY2xlIApCZXN0IHRlYW0gb24gSGFybWVuCkhhY2thdGhvbiAyMDE5Cg==", "vin" to "8423880"))
+                   } catch (e: Exception) {
                 println(e)
                 e.printStackTrace()
             }
